@@ -1,0 +1,7 @@
+"""Versiones del motor y del formato de datos."""
+
+ENGINE_VERSION = "0.5.0"
+SCENE_FORMAT_VERSION = 2
+PROJECT_FORMAT_VERSION = 2
+
+__all__ = ["ENGINE_VERSION", "SCENE_FORMAT_VERSION", "PROJECT_FORMAT_VERSION"]

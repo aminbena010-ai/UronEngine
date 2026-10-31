@@ -1,0 +1,18 @@
+# Version del motor
+Engine = 0.5
+# Version del IDE
+IDE = 0.2
+
+# Dependencias/ENGINE/IDE
+DPS:
+	Python3.13 # Se instala python
+		DPS:
+			uv
+			pygame
+			PyQt6
+			PyOpenGL
+			pytest
+			pyInstaller
+	
+		
+

@@ -1,0 +1,5 @@
+PyQt6>=6.6
+pygame>=2.5
+PyOpenGL>=3.1
+pytest>=8.0
+PyInstaller>=6.0

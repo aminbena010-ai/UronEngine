@@ -1,0 +1,27 @@
+# Entorno virtual de Python
+.venv/
+venv/
+env/
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de PyInstaller (builds)
+build/
+dist/
+*.spec
+
+# Archivos del sistema (macOS / Linux)
+.DS_Store
+Thumbs.db
+
+# Configuración de IDE (VS Code, PyCharm, etc.)
+.vscode/
+.idea/
+*.swp
+
+# Archivos de proyecto de URON (opcional, si no quieres versionar tus juegos)
+# MiJuego/
+# *.uron.json
