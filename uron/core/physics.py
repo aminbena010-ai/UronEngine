@@ -11,9 +11,10 @@ Características:
   * Callbacks de scripts on_collision_* y on_trigger_*, y on_destroy.
 """
 import math
+from .layers import DEFAULT_COLLISION_LAYERS, layers
 
 DEFAULT_GRAVITY = (0.0, 980.0)   # px/s^2 hacia abajo (Y crece hacia abajo)
-DEFAULT_LAYERS = ("Default", "Player", "Enemy", "Environment", "UI")
+DEFAULT_LAYERS = DEFAULT_COLLISION_LAYERS
 
 
 # --------------------------------------------------------------------------- #
@@ -64,11 +65,13 @@ class WorldCircle:
 # --------------------------------------------------------------------------- #
 def parse_layer_mask(value, default=None):
     if default is None:
-        default = set(DEFAULT_LAYERS)
+        default = set(layers.collision_layers())
     if value is None:
         return set(default)
     if isinstance(value, str):
         names = {p.strip() for p in value.split(",") if p.strip()}
+        if "*" in names or names == set(DEFAULT_LAYERS):
+            return set(layers.collision_layers())
         return names or set(default)
     try:
         return {str(v) for v in value}

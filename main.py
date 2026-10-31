@@ -67,24 +67,33 @@ def main():
     app.setStyleSheet(STYLESHEET)
 
     # 4. Bucle principal de la aplicación
+    project = None
+    scene_path = None
     while True:
-        # Mostrar pantalla de inicio (New / Open / Recent)
-        start = StartScreen()
-        if start.exec() != QDialog.DialogCode.Accepted:
-            break  # El usuario cerró la ventana o le dio a Salir
-            
-        project = start.project()
         if project is None:
-            break
+            # Mostrar pantalla de inicio (New / Open / Recent)
+            start = StartScreen()
+            if start.exec() != QDialog.DialogCode.Accepted:
+                break  # El usuario cerró la ventana o le dio a Salir
+
+            project = start.project()
+            if project is None:
+                break
 
         # Mostrar la ventana principal del IDE con el proyecto cargado
-        window = MainWindow(project)
+        window = MainWindow(project, scene_path)
         window.show()
         app.exec()  # Bloquea hasta que se cierre la ventana
 
         # Si la ventana se cerró sin volver a la pantalla de inicio, salimos
         if window.isVisible():
             break
+        if window.restart_requested:
+            project = window.project
+            scene_path = window.current_scene_path
+        else:
+            project = None
+            scene_path = None
 
     sys.exit(0)
 

@@ -190,6 +190,18 @@ class Scene:
         sx = float(pw["world_scale_x"]) or 1.0; sy = float(pw["world_scale_y"]) or 1.0
         return [rx / sx, ry / sy]
 
+    def world_delta_to_local(self, obj, dx, dy):
+        """Converts a world-space displacement to the object's parent space."""
+        pw = self.parent_world_transform(obj)
+        import math as _m
+        rad = _m.radians(-float(pw["world_rotation"]))
+        cos_a, sin_a = _m.cos(rad), _m.sin(rad)
+        rx = float(dx) * cos_a - float(dy) * sin_a
+        ry = float(dx) * sin_a + float(dy) * cos_a
+        sx = float(pw["world_scale_x"]) or 1.0
+        sy = float(pw["world_scale_y"]) or 1.0
+        return rx / sx, ry / sy
+
     def create_object(self, name="GameObject"):
         obj = GameObject(name=name)
         self.objects.append(obj)

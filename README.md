@@ -86,6 +86,13 @@ UronEngine/
 
        def start(self):
            print("¡Hola desde URON!")
+           self.sprite.set_color("#ff8040")
+           self.sprite.set_size(96, 64)
+           self.text.set_text("¡Listo!")
+           self.text.set_font_size(32)
+           self.rigidbody.set_velocity(120, 0)
+           self.layers.create_render_layer("Effects", 4)
+           self.sprite.set_layer("Effects", sorting_order=10)
 
        def update(self, dt):
            # Mover el objeto con WASD
@@ -97,9 +104,48 @@ UronEngine/
                    pos[0] + mov_x * self.velocidad * dt,
                    pos[1] + mov_y * self.velocidad * dt
                ])
+
    ```
 3. En el IDE, haz clic derecho sobre un objeto en el Hierarchy y selecciona **"Add Script"**.
 4. ¡Dale a Play!
+
+Los objetos pueden tener los componentes `SpriteRenderer`, `TextRenderer`,
+`RigidBody` y `BoxCollider` o `CircleCollider` desde el Inspector. Añade al
+objeto los componentes que utilice el script. Los scripts acceden a ellos con
+`self.sprite`, `self.text`, `self.rigidbody` y
+`self.collider`; también pueden asignar propiedades directamente, por ejemplo
+`self.text.text = "Puntos: 10"` o `self.sprite.color = "#ffffff"`.
+
+`self.layers.create_render_layer(nombre, orden)` registra una capa de dibujo y
+`self.layers.create_collision_layer(nombre)` una capa de colisión. Para
+colisiones personalizadas, asigna la capa con `self.collider.set_layer(nombre)`
+y, si hace falta, configura la máscara con `self.collider.set_mask([...])`.
+Las máscaras `*` y las máscaras predeterminadas incluyen las capas de colisión
+creadas durante la ejecución.
+
+Los scripts también pueden reaccionar a colisiones y triggers implementando
+estos métodos opcionales. `other` es el otro `GameObject`; `enter` ocurre al
+comenzar el contacto, `stay` en cada paso mientras continúa y `exit` al terminar:
+
+```python
+def on_collision_enter(self, other):
+    if other.name == "Enemy":
+        print("¡Choqué con un enemigo!")
+
+def on_collision_stay(self, other):
+    pass
+
+def on_collision_exit(self, other):
+    print(f"Ya no estoy tocando {other.name}")
+
+def on_trigger_enter(self, other):
+    if other.name == "Coin":
+        other.destroy()
+```
+
+Los callbacks `on_trigger_stay` y `on_trigger_exit` también están disponibles.
+Los triggers requieren un `BoxCollider` o `CircleCollider` con `is_trigger`
+activado y notifican sin resolver físicamente la colisión.
 
 ### Empaquetar tu juego
 1. Ve a **File -> Build Game**.
@@ -111,10 +157,19 @@ UronEngine/
 
 ## 🧪 Pruebas
 
-Para ejecutar las pruebas del motor (si has añadido alguna):
+Para ejecutar las pruebas del motor desde la terminal:
 ```bash
 uv run pytest
 ```
+
+También puedes usar **Test → Run Tests** en URON (atajo `Ctrl+Shift+T`). El IDE
+ejecuta `python -u -m pytest -vv -s` con el mismo intérprete de Python con el
+que se inició y transmite la salida en tiempo real a la terminal que abrió el
+IDE, no al panel Console.
+
+Para reiniciar el IDE y volver a abrir el proyecto y la escena actuales, usa
+**File → Restart Editor** o el atajo `Ctrl+R`. La escena se guarda antes de
+reiniciar.
 
 ---
 

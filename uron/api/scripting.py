@@ -13,6 +13,10 @@ from .input import Input
 from .audio import Audio
 from .draw import draw
 from .time import Time, Wait
+from .components import (
+    ColliderAPI, RigidBodyAPI, SpriteRendererAPI, TextRendererAPI,
+)
+from .layers import Layers
 
 
 class _PhysicsAPI:
@@ -78,6 +82,16 @@ class UronScript:
     draw = draw
     audio = Audio
     time = Time
+    sprite = None
+    text = None
+    rigidbody = None
+    collider = None
+    layers = Layers
+
+    def get_component(self, component_type):
+        if self.game_object is None:
+            raise RuntimeError("Script is not attached to a GameObject")
+        return self.game_object.get_component(component_type)
 
     def start(self): pass
     def update(self, dt): pass
@@ -129,6 +143,11 @@ class ScriptComponent(Component):
         instance.draw = draw
         instance.audio = Audio
         instance.time = Time
+        instance.sprite = SpriteRendererAPI(game_object)
+        instance.text = TextRendererAPI(game_object)
+        instance.rigidbody = RigidBodyAPI(game_object, Physics)
+        instance.collider = ColliderAPI(game_object)
+        instance.layers = Layers
         
         # Inyectar variables de usuario
         try: props = json.loads(self.get("properties_json", "{}"))
@@ -219,7 +238,8 @@ class ScriptLoader:
         if cls is None: return result
         reserved = {"start", "update", "on_destroy", "game_object", "scene",
                     "transform", "physics", "camera", "input", "draw",
-                    "audio", "time"}
+                    "audio", "time", "sprite", "text", "rigidbody", "collider",
+                    "layers", "get_component"}
         for name in dir(cls):
             if name.startswith("_") or name in reserved: continue
             try: value = getattr(cls, name)

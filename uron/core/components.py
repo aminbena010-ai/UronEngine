@@ -127,7 +127,7 @@ class SpriteRenderer(Component):
         Field("filter", "enum", "Linear", "Filter", choices=("Linear", "Nearest")),
         Field("flip_x", "bool", False, "Flip X"),
         Field("flip_y", "bool", False, "Flip Y"),
-        Field("layer", "enum", "Midground", "Layer", choices=("Background", "Midground", "Foreground", "UI")),
+        Field("layer", "string", "Midground", "Layer"),
         Field("sorting_order", "int", 0, "Sorting Order", -1000, 1000, 1),
     )
 
@@ -160,7 +160,7 @@ class PrimitiveRect(Component):
         Field("color", "color", "#4dd0e1", "Color"),
         Field("size", "vec2", [100.0, 100.0], "Size", 1, 100000, 1.0),
         Field("filled", "bool", True, "Filled"),
-        Field("layer", "enum", "Midground", "Layer", choices=("Background", "Midground", "Foreground", "UI")),
+        Field("layer", "string", "Midground", "Layer"),
         Field("sorting_order", "int", 0, "Sorting Order", -1000, 1000, 1),
     )
 
@@ -171,7 +171,7 @@ class PrimitiveCircle(Component):
         Field("color", "color", "#ff7043", "Color"),
         Field("radius", "float", 50.0, "Radius", 1, 100000, 1.0),
         Field("filled", "bool", True, "Filled"),
-        Field("layer", "enum", "Midground", "Layer", choices=("Background", "Midground", "Foreground", "UI")),
+        Field("layer", "string", "Midground", "Layer"),
         Field("sorting_order", "int", 0, "Sorting Order", -1000, 1000, 1),
     )
 
@@ -182,7 +182,7 @@ class TextRenderer(Component):
         Field("text", "string", "Hello", "Text"),
         Field("font_size", "int", 24, "Font Size", 4, 400, 1),
         Field("color", "color", "#ffffff", "Color"),
-        Field("layer", "enum", "UI", "Layer", choices=("Background", "Midground", "Foreground", "UI")),
+        Field("layer", "string", "UI", "Layer"),
         Field("sorting_order", "int", 100, "Sorting Order", -1000, 1000, 1),
     )
 
@@ -198,8 +198,8 @@ class BoxCollider(Component):
         Field("size", "vec2", [100.0, 100.0], "Size", 1, 100000, 1.0),
         Field("offset", "vec2", [0.0, 0.0], "Offset", -100000, 100000, 1.0),
         Field("is_trigger", "bool", False, "Is Trigger"),
-        Field("layer", "enum", "Default", "Layer", choices=("Default", "Player", "Enemy", "Environment", "UI")),
-        Field("collision_mask", "string", "Default,Player,Enemy,Environment,UI", "Collision Mask"),
+        Field("layer", "string", "Default", "Layer"),
+        Field("collision_mask", "string", "*", "Collision Mask"),
     )
 
 @register_component
@@ -209,8 +209,8 @@ class CircleCollider(Component):
         Field("radius", "float", 50.0, "Radius", 1, 100000, 1.0),
         Field("offset", "vec2", [0.0, 0.0], "Offset", -100000, 100000, 1.0),
         Field("is_trigger", "bool", False, "Is Trigger"),
-        Field("layer", "enum", "Default", "Layer", choices=("Default", "Player", "Enemy", "Environment", "UI")),
-        Field("collision_mask", "string", "Default,Player,Enemy,Environment,UI", "Collision Mask"),
+        Field("layer", "string", "Default", "Layer"),
+        Field("collision_mask", "string", "*", "Collision Mask"),
     )
 
 @register_component

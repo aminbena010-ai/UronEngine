@@ -30,6 +30,7 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 from uron.core.scene import Scene
+from uron.core.layers import layers
 from uron.core.physics import PhysicsSystem
 from uron.core.util import parse_color
 from uron.render.camera import CameraSystem
@@ -37,7 +38,6 @@ from uron.api.scripting import (
     Audio, Camera, Input, Physics, Time, draw, reload_changed_scripts,
 )
 
-LAYER_ORDER = {"Background": 0, "Midground": 1, "Foreground": 2, "UI": 3}
 TEXT_CACHE_LIMIT = 128
 
 
@@ -423,6 +423,7 @@ def run_scene(scene_path, project_folder=None, width=None, height=None, target_f
     physics_fps = max(1, int(runtime_cfg.get("physics_fps", 60)))
     resizable = bool(window_cfg.get("resizable", True))
 
+    layers.reset()
     scene = Scene.load(scene_path)
 
     Audio.configure(project_folder)
@@ -547,7 +548,7 @@ def run_scene(scene_path, project_folder=None, width=None, height=None, target_f
             if abs(world["world_y"] - camera_system.y) > half_h + 200: continue
             renderables.append((obj, layer, sort_order, world))
 
-        renderables.sort(key=lambda t: (LAYER_ORDER.get(t[1], 1), t[2]))
+        renderables.sort(key=lambda t: (layers.render_order(t[1]), t[2]))
         for obj, _layer, _sort, world in renderables:
             _draw_sprite(obj, textures, world)
             _draw_primitive_rect(obj, world)

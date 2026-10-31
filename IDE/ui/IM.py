@@ -28,16 +28,19 @@ from IDE.ui.build_dialog import BuildDialog
 
 # Lógica del editor
 from IDE.logic import Tool, UndoStack, PlayMode, recent
+from IDE.logic.pytest_runner import PytestRunner
 from IDE.ui.theme import ACCENT_GREEN
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, project: UronProject):
+    def __init__(self, project: UronProject, scene_path=None):
         super().__init__()
         self.project = project
+        self.restart_requested = False
         self.scene = Scene("Main Scene")
         self.undo = UndoStack(self.scene)
         self.play_mode = PlayMode(self)
+        self.pytest_runner = PytestRunner(self)
         
         self.current_scene_path = None
         self._current_object_id = None
@@ -70,10 +73,11 @@ class MainWindow(QMainWindow):
         self._connect_signals()
 
         main_path = project.main_scene_path()
-        if os.path.isfile(main_path):
-            self._load_scene(main_path)
+        initial_scene_path = scene_path if scene_path and os.path.isfile(scene_path) else main_path
+        if os.path.isfile(initial_scene_path):
+            self._load_scene(initial_scene_path)
         else:
-            self.current_scene_path = main_path
+            self.current_scene_path = initial_scene_path
             self.hierarchy.set_scene(self.scene)
             self.view.set_scene_model(self.scene)
 
@@ -116,6 +120,11 @@ class MainWindow(QMainWindow):
         tb.addSeparator()
         tb.addAction("＋ Empty", self.create_empty)
         tb.addAction("Save Scene", self.save_scene)
+        self.act_run_tests = QAction("Run Tests", self)
+        self.act_run_tests.setToolTip("Run pytest in the terminal that launched URON")
+        self.act_run_tests.setShortcut(QKeySequence("Ctrl+Shift+T"))
+        self.act_run_tests.triggered.connect(self.run_tests)
+        tb.addAction(self.act_run_tests)
         tb.addSeparator()
         for tool in (Tool.SELECT, Tool.MOVE, Tool.ROTATE, Tool.SCALE):
             act = QAction(tool.label, self)
@@ -134,6 +143,11 @@ class MainWindow(QMainWindow):
         save_act.setShortcut(QKeySequence("Ctrl+S"))
         save_act.triggered.connect(self.save_scene)
         file_menu.addAction(save_act)
+        file_menu.addSeparator()
+        self.act_restart_editor = QAction("Restart Editor", self)
+        self.act_restart_editor.setShortcut(QKeySequence("Ctrl+R"))
+        self.act_restart_editor.triggered.connect(self.restart_editor)
+        file_menu.addAction(self.act_restart_editor)
         file_menu.addSeparator()
         file_menu.addAction("Preferences…", self.open_preferences)
         file_menu.addAction("Build Game…", self.build_game)
@@ -157,6 +171,9 @@ class MainWindow(QMainWindow):
         del_act.triggered.connect(self.delete_selected)
         edit_menu.addAction(del_act)
 
+        test_menu = self.menuBar().addMenu("&Test")
+        test_menu.addAction(self.act_run_tests)
+
     def _connect_signals(self):
         self.hierarchy.objectSelected.connect(self._on_select)
         self.hierarchy.deleteRequested.connect(self._delete_by_id)
@@ -174,6 +191,9 @@ class MainWindow(QMainWindow):
         self.project_panel.assetRequested.connect(self._use_asset)
         self.play_mode.output.connect(self.log)
         self.play_mode.stateChanged.connect(self._on_play_state_changed)
+        self.pytest_runner.started.connect(self._on_tests_started)
+        self.pytest_runner.finished.connect(self._on_tests_finished)
+        self.pytest_runner.failed.connect(self._on_tests_failed)
 
     def _load_scene(self, path):
         try:
@@ -312,13 +332,23 @@ class MainWindow(QMainWindow):
 
     def save_scene(self):
         if not self.current_scene_path:
-            return
+            return True
         try:
             self.scene.make_portable(self.project.folder)
             self.scene.save(self.current_scene_path)
             self.log("Scene saved.")
+            return True
         except Exception as e:
             QMessageBox.critical(self, "Save Error", str(e))
+            return False
+
+    def restart_editor(self):
+        if not self.save_scene():
+            return
+        self.play_mode.stop()
+        self.pytest_runner.stop()
+        self.restart_requested = True
+        self.close()
 
     def do_undo(self):
         if self.undo.undo():
@@ -338,6 +368,29 @@ class MainWindow(QMainWindow):
 
     def log(self, msg):
         self.console.log(msg)
+
+    def run_tests(self):
+        if self.pytest_runner.is_running():
+            return
+        self.act_run_tests.setEnabled(False)
+        self.statusBar().showMessage("Starting pytest in the launch terminal…")
+        if not self.pytest_runner.start(self.project.folder):
+            self.act_run_tests.setEnabled(True)
+
+    def _on_tests_started(self):
+        self.statusBar().showMessage(
+            f"Running pytest with {self.pytest_runner.process.program()} "
+            f"in {self.project.folder}"
+        )
+
+    def _on_tests_finished(self, exit_code):
+        self.act_run_tests.setEnabled(True)
+        self.statusBar().showMessage(f"pytest finished with exit code {exit_code}", 5000)
+
+    def _on_tests_failed(self, message):
+        self.act_run_tests.setEnabled(True)
+        self.statusBar().showMessage("Could not start pytest", 5000)
+        QMessageBox.critical(self, "Pytest", message)
 
     def toggle_play(self):
         if self.play_mode.is_running():
